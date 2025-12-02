@@ -1,6 +1,0 @@
-[36mINFO[0m[0000] router: Hiddify!notifyNetworkUpdate 1
-[36mINFO[0m[0000] router: updated default interface en0, index 14
-[36mINFO[0m[0000] inbound/uap[uap-in]: tcp server started at 127.0.0.1:12345
-[36mINFO[0m[0000] sing-box started (0.00s)
-[36mINFO[0m[0004] [[38;5;95m2618132047[0m 0ms] inbound/uap[uap-in]: inbound connection from 127.0.0.1:60338
-[31mERROR[0m[0004] [[38;5;95m2618132047[0m 0ms] inbound/uap[uap-in]: process connection from 127.0.0.1:60338: unknown version: 0
