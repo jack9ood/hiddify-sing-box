@@ -1,0 +1,40 @@
+{
+    "log": {
+        "level": "debug"
+    },
+    "inbounds": [
+        {
+            "type": "mixed",
+            "tag": "mixed-in",
+            "listen": "127.0.0.1",
+            "listen_port": 2080
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "uap",
+            "tag": "uap-out",
+            "server": "127.0.0.1",
+            "server_port": 12345,
+            "uuid": "b831381d-6324-4d53-ad4f-8cda48b30811",
+            "flow": "xtls-rprx-vision",
+            "tls": {
+                "enabled": true,
+                "server_name": "www.google.com",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "pz7HSulvJG_ADRIk2k7H6DZ1cHZr7BuK9TmAYfJQTzM",
+                    "short_id": "12345678"
+                }
+            }
+        },
+        {
+            "type": "direct",
+            "tag": "direct"
+        }
+    ]
+}

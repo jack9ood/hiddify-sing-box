@@ -1,0 +1,40 @@
+{
+    "log": {
+        "level": "debug"
+    },
+    "inbounds": [
+        {
+            "type": "uap",
+            "tag": "uap-in",
+            "listen": "127.0.0.1",
+            "listen_port": 12345,
+            "users": [
+                {
+                    "name": "test",
+                    "uuid": "b831381d-6324-4d53-ad4f-8cda48b30811",
+                    "flow": "xtls-rprx-vision"
+                }
+            ],
+            "tls": {
+                "enabled": true,
+                "server_name": "www.google.com",
+                "reality": {
+                    "enabled": true,
+                    "handshake": {
+                        "server": "www.google.com",
+                        "server_port": 443
+                    },
+                    "private_key": "sAe01NYtHtPHDx6Fh2M4HeOvj68MLCdweDaF3IqHf0E",
+                    "short_id": [
+                        "12345678"
+                    ]
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct"
+        }
+    ]
+}
