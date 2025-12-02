@@ -1,0 +1,24 @@
+{
+  "log": {
+    "level": "debug"
+  },
+  "inbounds": [
+    {
+      "type": "uap",
+      "tag": "uap-in",
+      "listen": "127.0.0.1",
+      "listen_port": 12345,
+      "users": [
+        {
+          "name": "test",
+          "uuid": "b831381d-6324-4d53-ad4f-8cda48b30811"
+        }
+      ]
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct"
+    }
+  ]
+}

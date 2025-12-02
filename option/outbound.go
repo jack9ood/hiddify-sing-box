@@ -23,6 +23,7 @@ type _Outbound struct {
 	ShadowTLSOptions    ShadowTLSOutboundOptions    `json:"-"`
 	ShadowsocksROptions ShadowsocksROutboundOptions `json:"-"`
 	VLESSOptions        VLESSOutboundOptions        `json:"-"`
+	UAPOptions          UAPOutboundOptions          `json:"-"`
 	TUICOptions         TUICOutboundOptions         `json:"-"`
 	Hysteria2Options    Hysteria2OutboundOptions    `json:"-"`
 	SelectorOptions     SelectorOutboundOptions     `json:"-"`
@@ -64,6 +65,8 @@ func (h *Outbound) RawOptions() (any, error) {
 		rawOptionsPtr = &h.ShadowsocksROptions
 	case C.TypeVLESS:
 		rawOptionsPtr = &h.VLESSOptions
+	case C.TypeUAP:
+		rawOptionsPtr = &h.UAPOptions
 	case C.TypeTUIC:
 		rawOptionsPtr = &h.TUICOptions
 	case C.TypeHysteria2:

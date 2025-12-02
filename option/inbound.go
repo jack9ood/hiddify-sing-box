@@ -25,6 +25,7 @@ type _Inbound struct {
 	HysteriaOptions    HysteriaInboundOptions    `json:"-"`
 	ShadowTLSOptions   ShadowTLSInboundOptions   `json:"-"`
 	VLESSOptions       VLESSInboundOptions       `json:"-"`
+	UAPOptions         UAPInboundOptions         `json:"-"`
 	TUICOptions        TUICInboundOptions        `json:"-"`
 	Hysteria2Options   Hysteria2InboundOptions   `json:"-"`
 }
@@ -62,6 +63,8 @@ func (h *Inbound) RawOptions() (any, error) {
 		rawOptionsPtr = &h.ShadowTLSOptions
 	case C.TypeVLESS:
 		rawOptionsPtr = &h.VLESSOptions
+	case C.TypeUAP:
+		rawOptionsPtr = &h.UAPOptions
 	case C.TypeTUIC:
 		rawOptionsPtr = &h.TUICOptions
 	case C.TypeHysteria2:
