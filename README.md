@@ -1,6 +1,6 @@
 # sing-box
 
-The universal proxy platform.
+The universal proxy platform
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/sing-box.svg)](https://repology.org/project/sing-box/versions)
 
