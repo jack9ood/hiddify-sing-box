@@ -143,6 +143,72 @@ func (o *DialerOptions) ReplaceDialerOptions(options DialerOptions) {
 	*o = options
 }
 
+// UnmarshalJSON implements json.Unmarshaler to handle both value and pointer types for TLSFragment
+func (o *DialerOptions) UnmarshalJSON(data []byte) error {
+	// Define a temporary struct that can handle both value and pointer types
+	type dialerOptionsAlias struct {
+		Detour              string              `json:"detour,omitempty"`
+		BindInterface       string              `json:"bind_interface,omitempty"`
+		Inet4BindAddress    *ListenAddress      `json:"inet4_bind_address,omitempty"`
+		Inet6BindAddress    *ListenAddress      `json:"inet6_bind_address,omitempty"`
+		ProtectPath         string              `json:"protect_path,omitempty"`
+		RoutingMark         int                 `json:"routing_mark,omitempty"`
+		ReuseAddr           bool                `json:"reuse_addr,omitempty"`
+		ConnectTimeout      Duration            `json:"connect_timeout,omitempty"`
+		TCPFastOpen         bool                `json:"tcp_fast_open,omitempty"`
+		TCPMultiPath        bool                `json:"tcp_multi_path,omitempty"`
+		UDPFragment         *bool               `json:"udp_fragment,omitempty"`
+		UDPFragmentDefault  bool                `json:"-"`
+		DomainStrategy      DomainStrategy      `json:"domain_strategy,omitempty"`
+		FallbackDelay       Duration            `json:"fallback_delay,omitempty"`
+		IsWireGuardListener bool                `json:"-"`
+		TLSFragment         json.RawMessage     `json:"tls_fragment,omitempty"` // Use RawMessage to handle both types
+	}
+	
+	var alias dialerOptionsAlias
+	if err := json.Unmarshal(data, &alias); err != nil {
+		return err
+	}
+	
+	// Copy all fields except TLSFragment
+	o.Detour = alias.Detour
+	o.BindInterface = alias.BindInterface
+	o.Inet4BindAddress = alias.Inet4BindAddress
+	o.Inet6BindAddress = alias.Inet6BindAddress
+	o.ProtectPath = alias.ProtectPath
+	o.RoutingMark = alias.RoutingMark
+	o.ReuseAddr = alias.ReuseAddr
+	o.ConnectTimeout = alias.ConnectTimeout
+	o.TCPFastOpen = alias.TCPFastOpen
+	o.TCPMultiPath = alias.TCPMultiPath
+	o.UDPFragment = alias.UDPFragment
+	o.UDPFragmentDefault = alias.UDPFragmentDefault
+	o.DomainStrategy = alias.DomainStrategy
+	o.FallbackDelay = alias.FallbackDelay
+	o.IsWireGuardListener = alias.IsWireGuardListener
+	
+	// Handle TLSFragment: try pointer type first, then value type
+	if len(alias.TLSFragment) > 0 {
+		// Try to unmarshal as pointer type first
+		var ptrValue *TLSFragmentOptions
+		if err := json.Unmarshal(alias.TLSFragment, &ptrValue); err == nil && ptrValue != nil {
+			o.TLSFragment = ptrValue
+		} else {
+			// If that fails, try value type and convert to pointer
+			var value TLSFragmentOptions
+			if err := json.Unmarshal(alias.TLSFragment, &value); err == nil {
+				o.TLSFragment = &value
+			} else {
+				return E.Cause(err, "invalid tls_fragment format")
+			}
+		}
+	} else {
+		o.TLSFragment = nil
+	}
+	
+	return nil
+}
+
 type ServerOptionsWrapper interface {
 	TakeServerOptions() ServerOptions
 	ReplaceServerOptions(options ServerOptions)
