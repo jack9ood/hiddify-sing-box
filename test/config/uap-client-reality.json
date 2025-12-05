@@ -14,13 +14,13 @@
         {
             "type": "uap",
             "tag": "uap-out",
-            "server": "127.0.0.1",
+            "server": "67.209.185.242",
             "server_port": 12345,
             "uuid": "b831381d-6324-4d53-ad4f-8cda48b30811",
             "flow": "xtls-rprx-vision",
             "tls": {
                 "enabled": true,
-                "server_name": "www.google.com",
+                "server_name": "microsoft.com",
                 "utls": {
                     "enabled": true,
                     "fingerprint": "chrome"

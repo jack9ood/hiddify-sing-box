@@ -1,4 +1,4 @@
-//go:build go1.20 && !windows
+//go:build windows && go1.20
 
 package dialer
 
@@ -7,37 +7,23 @@ import (
 	"io"
 	"net"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/bufio"
-	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
-	"github.com/sagernet/tfo-go"
 )
 
 type slowOpenConn struct {
-	dialer      *tfo.Dialer
+	dialer      net.Dialer
 	ctx         context.Context
 	network     string
 	destination M.Socksaddr
 	conn        net.Conn
-	create      chan struct{}
-	access      sync.Mutex
-	err         error
 }
 
 func (c *slowOpenConn) Read(b []byte) (n int, err error) {
 	if c.conn == nil {
-		select {
-		case <-c.create:
-			if c.err != nil {
-				return 0, c.err
-			}
-		case <-c.ctx.Done():
-			return 0, c.ctx.Err()
-		}
+		return 0, os.ErrInvalid
 	}
 	return c.conn.Read(b)
 }
@@ -46,24 +32,13 @@ func (c *slowOpenConn) Write(b []byte) (n int, err error) {
 	if c.conn != nil {
 		return c.conn.Write(b)
 	}
-	c.access.Lock()
-	defer c.access.Unlock()
-	select {
-	case <-c.create:
-		if c.err != nil {
-			return 0, c.err
-		}
-		return c.conn.Write(b)
-	default:
-	}
-	c.conn, err = c.dialer.DialContext(c.ctx, c.network, c.destination.String(), b)
+	// On Windows, we don't use TFO due to compatibility issues
+	// Just establish a normal connection
+	c.conn, err = c.dialer.DialContext(c.ctx, c.network, c.destination.String())
 	if err != nil {
-		c.conn = nil
-		c.err = E.Cause(err, "dial tcp fast open")
+		return 0, err
 	}
-	n = len(b)
-	close(c.create)
-	return
+	return c.conn.Write(b)
 }
 
 func (c *slowOpenConn) Close() error {
@@ -105,36 +80,43 @@ func (c *slowOpenConn) SetWriteDeadline(t time.Time) error {
 	return c.conn.SetWriteDeadline(t)
 }
 
-func (c *slowOpenConn) Upstream() any {
-	return c.conn
-}
-
 func (c *slowOpenConn) ReaderReplaceable() bool {
-	return c.conn != nil
+	return c.conn == nil
 }
 
 func (c *slowOpenConn) WriterReplaceable() bool {
-	return c.conn != nil
+	return c.conn == nil
 }
 
 func (c *slowOpenConn) LazyHeadroom() bool {
 	return c.conn == nil
 }
 
+func (c *slowOpenConn) Upstream() any {
+	return c.conn
+}
+
+func (c *slowOpenConn) LazyWrite(payload []byte) error {
+	_, err := c.Write(payload)
+	return err
+}
+
 func (c *slowOpenConn) NeedHandshake() bool {
 	return c.conn == nil
 }
 
-func (c *slowOpenConn) WriteTo(w io.Writer) (n int64, err error) {
-	if c.conn == nil {
-		select {
-		case <-c.create:
-			if c.err != nil {
-				return 0, c.err
-			}
-		case <-c.ctx.Done():
-			return 0, c.ctx.Err()
-		}
-	}
-	return bufio.Copy(w, c.conn)
+var _ io.Writer = (*slowWriteCloser)(nil)
+
+type slowWriteCloser struct {
+	writer io.Writer
+	closer io.Closer
 }
+
+func (c *slowWriteCloser) Write(b []byte) (n int, err error) {
+	return c.writer.Write(b)
+}
+
+func (c *slowWriteCloser) Close() error {
+	return c.closer.Close()
+}
+

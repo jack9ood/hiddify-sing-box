@@ -1,4 +1,4 @@
-//go:build go1.20 && !windows
+//go:build windows && go1.20
 
 package dialer
 
@@ -8,10 +8,10 @@ import (
 
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
-	"github.com/sagernet/tfo-go"
 )
 
-// Custom TCP dialer with extra features such as "TCP Fast Open" or "TLS Fragmentation"
+// Custom TCP dialer with extra features such as "TLS Fragmentation"
+// TCP Fast Open is disabled on Windows due to compatibility issues
 type ExtendedTCPDialer struct {
 	net.Dialer
 	DisableTFO  bool
@@ -19,7 +19,7 @@ type ExtendedTCPDialer struct {
 }
 
 func (d *ExtendedTCPDialer) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {
-	if (d.DisableTFO && !d.TLSFragment.Enabled) || N.NetworkName(network) != N.NetworkTCP {
+	if !d.TLSFragment.Enabled || N.NetworkName(network) != N.NetworkTCP {
 		switch N.NetworkName(network) {
 		case N.NetworkTCP, N.NetworkUDP:
 			return d.Dialer.DialContext(ctx, network, destination.String())
@@ -43,13 +43,13 @@ func (d *ExtendedTCPDialer) DialContext(ctx context.Context, network string, des
 		fragmentConn.conn = conn
 		return fragmentConn, nil
 	}
-	// Create a TFO dialer
+	// On Windows, TFO is disabled, use regular dialer wrapped in slowOpenConn for compatibility
 	return &slowOpenConn{
-			dialer:      &tfo.Dialer{Dialer: d.Dialer, DisableTFO: d.DisableTFO},
+			dialer:      d.Dialer,
 			ctx:         ctx,
 			network:     network,
 			destination: destination,
-			create:      make(chan struct{}),
 		},
 		nil
 }
+
